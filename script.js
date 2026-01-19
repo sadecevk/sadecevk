@@ -7,7 +7,6 @@ const COL = 10;
 const SQ = 30;
 const VACANT = "BLACK"; 
 
-// Kare çizme fonksiyonu
 function drawSquare(x, y, color) {
     ctx.fillStyle = color;
     ctx.fillRect(x * SQ, y * SQ, SQ, SQ);
@@ -15,7 +14,6 @@ function drawSquare(x, y, color) {
     ctx.strokeRect(x * SQ, y * SQ, SQ, SQ);
 }
 
-// Oyun tahtasını oluşturma
 let board = [];
 for(r = 0; r < ROW; r++){
     board[r] = [];
@@ -31,16 +29,23 @@ function drawBoard(){
         }
     }
 }
-
 drawBoard();
 
-// Tetris Şekli (Sadece Kare Şekli)
-const O = [
-    [
-        [1, 1],
-        [1, 1]
-    ]
-];
+// TÜM TETRİS ŞEKİLLERİ VE DÖNÜŞLERİ
+const I = [[ [0,1,0,0],[0,1,0,0],[0,1,0,0],[0,1,0,0] ],[ [0,0,0,0],[1,1,1,1],[0,0,0,0],[0,0,0,0] ],[ [0,0,1,0],[0,0,1,0],[0,0,1,0],[0,0,1,0] ],[ [0,0,0,0],[0,0,0,0],[1,1,1,1],[0,0,0,0] ]];
+const J = [[ [1,0,0],[1,1,1],[0,0,0] ],[ [0,1,1],[0,1,0],[0,1,0] ],[ [0,0,0],[1,1,1],[0,0,1] ],[ [0,1,0],[0,1,0],[1,1,0] ]];
+const L = [[ [0,0,1],[1,1,1],[0,0,0] ],[ [0,1,0],[0,1,0],[0,1,1] ],[ [0,0,0],[1,1,1],[1,0,0] ],[ [1,1,0],[0,1,0],[0,1,0] ]];
+const O = [[ [1,1],[1,1] ]];
+const S = [[ [0,1,1],[1,1,0],[0,0,0] ],[ [0,1,0],[0,1,1],[0,0,1] ],[ [0,0,0],[0,1,1],[1,1,0] ],[ [1,0,0],[1,1,0],[0,1,0] ]];
+const T = [[ [0,1,0],[1,1,1],[0,0,0] ],[ [0,1,0],[0,1,1],[0,1,0] ],[ [0,0,0],[1,1,1],[0,1,0] ],[ [0,1,0],[1,1,0],[0,1,0] ]];
+const Z = [[ [1,1,0],[0,1,1],[0,0,0] ],[ [0,0,1],[0,1,1],[0,1,0] ],[ [0,0,0],[1,1,0],[0,1,1] ],[ [0,1,0],[1,1,0],[1,0,0] ]];
+
+const PIECES = [ [I,"cyan"],[J,"blue"],[L,"orange"],[O,"yellow"],[S,"green"],[T,"purple"],[Z,"red"] ];
+
+function randomPiece(){
+    let r = Math.floor(Math.random() * PIECES.length);
+    return new Piece(PIECES[r][0], PIECES[r][1]);
+}
 
 class Piece {
     constructor(tetromino, color) {
@@ -48,7 +53,7 @@ class Piece {
         this.color = color;
         this.tetrominoN = 0; 
         this.activeTetromino = this.tetromino[this.tetrominoN];
-        this.x = 4;
+        this.x = 3;
         this.y = -2;
     }
 
@@ -72,7 +77,7 @@ class Piece {
             this.draw();
         } else {
             this.lock();
-            p = new Piece(O, "red");
+            p = randomPiece();
         }
     }
 
@@ -92,6 +97,16 @@ class Piece {
         }
     }
 
+    rotate() {
+        let nextPattern = this.tetromino[(this.tetrominoN + 1) % this.tetromino.length];
+        if(!this.collision(0,0,nextPattern)){
+            this.unDraw();
+            this.tetrominoN = (this.tetrominoN + 1) % this.tetromino.length;
+            this.activeTetromino = this.tetromino[this.tetrominoN];
+            this.draw();
+        }
+    }
+
     collision(x, y, piece) {
         for(r = 0; r < piece.length; r++){
             for(c = 0; c < piece.length; c++){
@@ -99,53 +114,4 @@ class Piece {
                 let newX = this.x + c + x;
                 let newY = this.y + r + y;
                 if(newX < 0 || newX >= COL || newY >= ROW){ return true; }
-                if(newY < 0){ continue; }
-                if(board[newY][newX] != VACANT){ return true; }
-            }
-        }
-        return false;
-    }
-
-    lock() {
-        for(r = 0; r < this.activeTetromino.length; r++){
-            for(c = 0; c < this.activeTetromino.length; c++){
-                if(!this.activeTetromino[r][c]){ continue; }
-                if(this.y + r < 0){
-                    alert("Oyun Bitti!");
-                    gameOver = true;
-                    break;
-                }
-                board[this.y + r][this.x + c] = this.color;
-            }
-        }
-        // Satır kontrolü burada yapılabilir
-        drawBoard();
-    }
-}
-
-let p = new Piece(O, "red");
-let gameOver = false;
-
-function drop(){
-    if(!gameOver){
-        p.moveDown();
-        setTimeout(drop, 1000);
-    }
-}
-
-// Butonları bağlayalım
-document.getElementById('startButton').addEventListener('click', () => {
-    gameOver = false;
-    drop();
-});
-
-document.getElementById('resetButton').addEventListener('click', () => {
-    location.reload(); // En temiz sıfırlama yöntemi
-});
-
-// Klavye kontrolü
-document.addEventListener("keydown", event => {
-    if(event.keyCode == 37) p.moveLeft();
-    else if(event.keyCode == 39) p.moveRight();
-    else if(event.keyCode == 40) p.moveDown();
-});
+                if(newY < 0){ continue;
