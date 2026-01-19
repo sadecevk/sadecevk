@@ -41,12 +41,15 @@ function update() {
                 basket.y -= 25;      
                 activeFruit = null; 
 
-                if (basket.height >= LIMIT) {
-                    gameRunning = false;
-                    setTimeout(() => {
-                        alert("💥 GÜÜÜM! " + basket.name + " PATLADI! 💥");
-                        location.reload();
-                    }, 100);
+               // alert yerine bu kısmı kullanıyoruz:
+if (basket.height >= LIMIT) {
+    gameRunning = false;
+    const modal = document.getElementById('explosionModal');
+    const modalText = document.getElementById('explosionText');
+    
+    modalText.innerHTML = "💥 GÜÜÜM! <br>" + basket.name.toUpperCase() + " PATLADI! 💥";
+    modal.style.display = "flex"; // Ekranı göster
+}
                 } else {
                     setTimeout(createFruit, 300);
                 }
