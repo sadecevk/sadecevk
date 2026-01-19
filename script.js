@@ -4,109 +4,94 @@ const startBtn = document.getElementById('startButton');
 const modal = document.getElementById('explosionModal');
 const modalText = document.getElementById('explosionText');
 
-const names = ["Nurinin Götü", "İlyasın Götü", "Barışın Götü"];
+// Görselleri Yükle
+const imgAgiz = new Image(); imgAgiz.src = 'ibrahim_agiz.png';
+const imgGot = new Image(); imgGot.src = 'ibrahim_got.png';
+
 let baskets = [
-    { x: 20, y: 530, width: 100, height: 40, color: '#e74c3c', name: names[0] },
-    { x: 150, y: 530, width: 100, height: 40, color: '#f1c40f', name: names[1] },
-    { x: 280, y: 530, width: 100, height: 40, color: '#3498db', name: names[2] }
+    { x: 30, y: 500, width: 150, height: 80, img: imgAgiz, name: "İbrahimin ağzına ver" },
+    { x: 220, y: 500, width: 150, height: 80, img: imgGot, name: "İbrahimin götüne sok" }
 ];
 
 let activeFruit = null; 
 let gameRunning = false;
-let speed = 6;
-const LIMIT = 130;
+let speed = 7; // Biraz hızlandırdık
+const LIMIT = 200; // Daha fazla şişebilsin
 
 function createFruit() {
     if (!gameRunning) return;
-    activeFruit = {
-        x: Math.random() * (canvas.width - 60) + 30,
-        y: -30,
-        radius: 18,
-        color: '#FFD700'
-    };
+    activeFruit = { x: Math.random() * 340 + 30, y: -20, radius: 18 };
 }
 
-function gameLoop() {
+function loop() {
     if (!gameRunning) return;
 
     // UPDATE
-    if (activeFruit) {
-        activeFruit.y += speed;
+    if (!activeFruit) createFruit();
+    activeFruit.y += speed;
 
-        baskets.forEach(basket => {
-            if (activeFruit &&
-                activeFruit.x > basket.x && 
-                activeFruit.x < basket.x + basket.width &&
-                activeFruit.y + activeFruit.radius > basket.y) {
-                
-                basket.height += 25; 
-                basket.y -= 25;      
-                activeFruit = null; 
-
-                if (basket.height >= LIMIT) {
-                    gameRunning = false;
-                    modalText.innerHTML = "💥 GÜÜÜM! <br>" + basket.name.toUpperCase() + " PATLADI! 💥";
-                    modal.style.display = "flex";
-                } else {
-                    setTimeout(createFruit, 300);
-                }
-            }
-        });
-
-        if (activeFruit && activeFruit.y > canvas.height) {
+    baskets.forEach(b => {
+        if (activeFruit && activeFruit.x > b.x && activeFruit.x < b.x + b.width && activeFruit.y > b.y) {
+            b.height += 30; // Yakaladıkça daha çok şişer
+            b.y -= 30;      
             activeFruit = null;
-            setTimeout(createFruit, 300);
+            
+            if (b.height >= LIMIT) {
+                gameRunning = false;
+                modalText.innerHTML = "💥 GÜÜÜM! 💥<br>" + b.name.toUpperCase() + " PATLADI!";
+                modal.style.display = "flex";
+            }
         }
-    } else {
-        createFruit();
-    }
+    });
+
+    if (activeFruit && activeFruit.y > 600) activeFruit = null;
 
     // DRAW
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    baskets.forEach(basket => {
-        ctx.fillStyle = basket.color;
-        ctx.fillRect(basket.x, basket.y, basket.width, basket.height);
+    ctx.clearRect(0, 0, 400, 600);
+    baskets.forEach(b => {
+        // Görseli çiz
+        ctx.drawImage(b.img, b.x, b.y, b.width, b.height);
+        
+        // İsmi çiz
         ctx.fillStyle = "white";
         ctx.font = "bold 14px Arial";
         ctx.textAlign = "center";
-        ctx.fillText(basket.name, basket.x + (basket.width / 2), 585);
+        ctx.fillText(b.name, b.x + (b.width / 2), 590);
     });
 
     if (activeFruit) {
+        ctx.fillStyle = "gold";
         ctx.beginPath();
-        ctx.arc(activeFruit.x, activeFruit.y, activeFruit.radius, 0, Math.PI * 2);
-        ctx.fillStyle = activeFruit.color;
+        ctx.arc(activeFruit.x, activeFruit.y, 18, 0, Math.PI*2);
         ctx.fill();
         ctx.closePath();
     }
 
-    requestAnimationFrame(gameLoop);
+    requestAnimationFrame(loop);
 }
 
 // KONTROLLER
 function move(dir) {
-    if (!activeFruit || !gameRunning) return;
-    if (dir === 'L' && activeFruit.x > 30) activeFruit.x -= 45;
-    if (dir === 'R' && activeFruit.x < canvas.width - 30) activeFruit.x += 45;
+    if (activeFruit && gameRunning) {
+        if (dir === 'L' && activeFruit.x > 30) activeFruit.x -= 50;
+        if (dir === 'R' && activeFruit.x < 370) activeFruit.x += 50;
+    }
 }
 
-window.addEventListener('keydown', (e) => {
+window.addEventListener('keydown', e => {
     if (e.key === "ArrowLeft") move('L');
     if (e.key === "ArrowRight") move('R');
 });
 
-canvas.addEventListener('touchstart', (e) => {
+canvas.addEventListener('touchstart', e => {
     const rect = canvas.getBoundingClientRect();
     const x = e.touches[0].clientX - rect.left;
-    if (x < canvas.width / 2) move('L'); else move('R');
+    move(x < canvas.width/2 ? 'L' : 'R');
     e.preventDefault();
 }, {passive: false});
 
-// BAŞLATMA
-startBtn.addEventListener('click', () => {
-    if (!gameRunning) {
-        gameRunning = true;
-        startBtn.style.display = 'none';
-        gameLoop();
-    }
-});
+startBtn.onclick = () => {
+    gameRunning = true;
+    startBtn.style.display = 'none';
+    loop();
+};
