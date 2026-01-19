@@ -10,55 +10,60 @@ let baskets = [
     { x: 280, y: 530, width: 100, height: 40, color: '#3498db', name: names[2] }
 ];
 
-let activeFruit = null; // Sadece tek bir aktif meyve olacak
+let activeFruit = null; 
 let gameRunning = false;
 let speed = 5;
 const LIMIT = 120;
 
 function createFruit() {
-    if (!gameRunning || activeFruit !== null) return; 
+    if (!gameRunning) return; 
     
     activeFruit = {
-        x: Math.random() * (canvas.width - 40) + 20,
-        y: -20,
+        x: Math.random() * (canvas.width - 60) + 30,
+        y: -30,
         radius: 15,
         color: '#FFD700'
     };
 }
 
 function update() {
-    if (!gameRunning || !activeFruit) return;
+    if (!gameRunning) return;
 
-    activeFruit.y += speed;
+    if (activeFruit) {
+        activeFruit.y += speed;
 
-    // Çarpışma kontrolü
-    baskets.forEach(basket => {
-        if (activeFruit &&
-            activeFruit.x > basket.x && 
-            activeFruit.x < basket.x + basket.width &&
-            activeFruit.y + activeFruit.radius > basket.y) {
-            
-            basket.height += 20; 
-            basket.y -= 20;      
-            activeFruit = null; // Meyve sepete girdi, yok et
+        // Çarpışma kontrolü
+        baskets.forEach(basket => {
+            if (activeFruit &&
+                activeFruit.x > basket.x && 
+                activeFruit.x < basket.x + basket.width &&
+                activeFruit.y + activeFruit.radius > basket.y) {
+                
+                basket.height += 20; 
+                basket.y -= 20;      
+                activeFruit = null; 
 
-            if (basket.height >= LIMIT) {
-                gameRunning = false;
-                setTimeout(() => {
-                    alert("💥 GÜÜÜM! " + basket.name + " PATLADI! 💥");
-                    location.reload();
-                }, 100);
-            } else {
-                // Sepete girdi ama patlamadıysa yeni meyve oluştur
-                setTimeout(createFruit, 500);
+                if (basket.height >= LIMIT) {
+                    gameRunning = false;
+                    setTimeout(() => {
+                        alert("💥 GÜÜÜM! " + basket.name + " PATLADI! 💥");
+                        location.reload();
+                    }, 100);
+                } else {
+                    // Bir sonraki meyveyi oluştur
+                    setTimeout(createFruit, 400);
+                }
             }
-        }
-    });
+        });
 
-    // Ekranın altına ulaşıp kaçarsa
-    if (activeFruit && activeFruit.y > canvas.height) {
-        activeFruit = null;
-        setTimeout(createFruit, 500);
+        // Ekranın altına ulaşıp kaçarsa
+        if (activeFruit && activeFruit.y > canvas.height) {
+            activeFruit = null;
+            setTimeout(createFruit, 400);
+        }
+    } else {
+        // Eğer oyun çalışıyor ama meyve yoksa (ilk başlangıç anı gibi)
+        createFruit();
     }
 }
 
@@ -76,3 +81,39 @@ function draw() {
         ctx.font = "bold 16px Arial";
         ctx.textAlign = "center";
         ctx.fillText(basket.name, basket.x + (basket.width / 2), 585);
+    });
+
+    if (activeFruit) {
+        ctx.beginPath();
+        ctx.arc(activeFruit.x, activeFruit.y, activeFruit.radius, 0, Math.PI * 2);
+        ctx.fillStyle = activeFruit.color;
+        ctx.fill();
+        ctx.strokeStyle = "#DAA520";
+        ctx.stroke();
+        ctx.closePath();
+    }
+
+    if (gameRunning) {
+        update();
+        requestAnimationFrame(draw);
+    }
+}
+
+// Kontroller
+document.addEventListener('keydown', (e) => {
+    if (activeFruit && gameRunning) {
+        if (e.key === "ArrowLeft" && activeFruit.x > 25) activeFruit.x -= 35;
+        if (e.key === "ArrowRight" && activeFruit.x < canvas.width - 25) activeFruit.x += 35;
+    }
+});
+
+// BAŞLATMA FONKSİYONU - GARANTİLİ
+startButton.onclick = function() {
+    if (!gameRunning) {
+        gameRunning = true;
+        startButton.style.display = 'none';
+        console.log("Oyun Başlatıldı");
+        createFruit(); // İlk meyveyi oluştur
+        draw(); // Çizim döngüsünü başlat
+    }
+};
