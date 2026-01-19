@@ -27,8 +27,10 @@ function createFruit() {
 
 function update() {
     if (!gameRunning) return;
+
     if (activeFruit) {
         activeFruit.y += speed;
+
         baskets.forEach(basket => {
             if (activeFruit &&
                 activeFruit.x > basket.x && 
@@ -62,12 +64,14 @@ function update() {
 
 function draw() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
+
     baskets.forEach(basket => {
         ctx.fillStyle = basket.color;
         ctx.fillRect(basket.x, basket.y, basket.width, basket.height);
         ctx.strokeStyle = "white";
         ctx.lineWidth = 3;
         ctx.strokeRect(basket.x, basket.y, basket.width, basket.height);
+
         ctx.fillStyle = "white";
         ctx.font = "bold 16px Arial";
         ctx.textAlign = "center";
@@ -90,9 +94,9 @@ function draw() {
     }
 }
 
-// --- KONTROLLER (KLAVYE VE DOKUNMATİK) ---
+// --- KONTROLLER ---
 
-// Klavye Kontrolü
+// Klavye
 document.addEventListener('keydown', (e) => {
     if (activeFruit && gameRunning) {
         if (e.key === "ArrowLeft" && activeFruit.x > 25) activeFruit.x -= 35;
@@ -100,14 +104,18 @@ document.addEventListener('keydown', (e) => {
     }
 });
 
-// Dokunmatik Kontrol (Mobil için)
+// Mobil Dokunma
+canvas.addEventListener('mousedown', (e) => handleInput(e.clientX));
 canvas.addEventListener('touchstart', (e) => {
+    handleInput(e.touches[0].clientX);
+    e.preventDefault();
+}, {passive: false});
+
+function handleInput(clientX) {
     if (!gameRunning || !activeFruit) return;
+    const rect = canvas.getBoundingClientRect();
+    const x = clientX - rect.left;
     
-    // Dokunulan yerin X koordinatını al
-    let touchX = e.touches[0].clientX - canvas.getBoundingClientRect().left;
-    
-    // Eğer ekranın sol yarısına basıldıysa sola, sağ yarısına basıldıysa sağa kaydır
-    if (touchX < canvas.width / 2) {
-        if (activeFruit.x > 25) activeFruit.x -= 4
-        
+    if (x < canvas.width / 2) {
+        if (activeFruit.x > 25) activeFruit.x -= 40;
+    } else {
