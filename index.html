@@ -1,7 +1,21 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SadeceVK Tetris</title>
+    <link rel="stylesheet" href="style.css">
+</head>
 <body>
-    <h1>Mobil App Geliyor!</h1>
-    <p>Bu proje GitHub Codespaces üzerinde geliştiriliyor!</p>
+    <div class="game-container">
+        <h1>SadeceVK Tetris</h1>
+        <canvas id="tetrisCanvas" width="300" height="600"></canvas>
+        <div class="controls">
+            <button id="startButton">Başlat</button>
+            <button id="resetButton">Sıfırla</button>
+        </div>
+        <div class="score">Puan: <span id="scoreDisplay">0</span></div>
+    </div>
+    <script src="script.js"></script>
 </body>
 </html>
