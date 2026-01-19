@@ -1,92 +1,31 @@
 body {
     background-color: #1a1a1a;
     color: white;
-    font-family: 'Arial', sans-serif;
+    font-family: sans-serif;
     display: flex;
-    flex-direction: column; /* Üstten aşağı hizalama */
-    justify-content: flex-start; /* Üstten başla */
+    flex-direction: column;
     align-items: center;
-    height: 100vh;
     margin: 0;
     overflow: hidden;
     touch-action: none;
 }
-
-.game-container {
-    text-align: center;
-    width: 100%;
-    padding-top: 10px;
-}
-
+.game-container { text-align: center; width: 100%; padding-top: 10px; }
 #startButton {
-    padding: 12px 30px;
-    font-size: 18px;
-    background-color: #27ae60;
-    color: white;
-    border: none;
-    cursor: pointer;
-    border-radius: 8px;
-    font-weight: bold;
-    margin-bottom: 10px; /* Oyun alanıyla buton arasına boşluk */
-    position: relative;
-    z-index: 1000;
+    padding: 15px 30px; font-size: 20px; background-color: #27ae60;
+    color: white; border: none; border-radius: 8px; font-weight: bold;
+    margin-bottom: 10px; cursor: pointer;
 }
-
 canvas {
-    background-color: #2c3e50;
-    border: 3px solid #ecf0f1;
-    border-radius: 10px;
-    display: block;
-    margin: 0 auto;
-    /* Mobilde ekranın %60'ından fazlasını kaplamasın ki her şey sığsın */
-    max-width: 85vw;
-    max-height: 65vh; 
+    background-color: #2c3e50; border: 3px solid #ecf0f1;
+    border-radius: 10px; max-width: 90vw; max-height: 65vh;
 }
-
-.info {
-    margin: 5px 0;
-    color: #bdc3c7;
-    font-size: 12px;
-}
-/* Patlama Ekranı Tasarımı */
 .modal {
-    display: none; /* Başlangıçta gizli */
-    position: fixed;
-    z-index: 2000;
-    left: 0; top: 0;
-    width: 100%; height: 100%;
-    background-color: rgba(0,0,0,0.9); /* Arka planı karart */
-    justify-content: center;
-    align-items: center;
+    display: none; position: fixed; z-index: 2000; left: 0; top: 0;
+    width: 100%; height: 100%; background-color: rgba(0,0,0,0.9);
+    justify-content: center; align-items: center;
 }
-
 .modal-content {
-    background-color: #333;
-    padding: 20px;
-    border-radius: 15px;
-    text-align: center;
-    border: 5px solid #ff4500;
-    max-width: 80%;
+    background-color: #333; padding: 20px; border-radius: 15px;
+    text-align: center; border: 5px solid #ff4500;
 }
-
-#explosionImage {
-    width: 100%;
-    max-width: 300px;
-    border-radius: 10px;
-    margin: 15px 0;
-}
-
-.modal-content h2 {
-    color: #ff4500;
-    font-size: 24px;
-}
-
-.modal-content button {
-    padding: 10px 20px;
-    background: #27ae60;
-    color: white;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-    font-weight: bold;
-}
+#explosionImage { width: 250px; border-radius: 10px; margin: 15px 0; }

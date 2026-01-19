@@ -3,25 +3,26 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Meyve Yakalama Oyunu</title>
+    <title>Meyve Yakalama</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <div class="game-container">
         <h1>Meyve Yakalama</h1>
-        <button id="startButton">OYUNU BAŞLAT</button> <div class="info">Sağa/Sola Dokunarak Oyna</div>
-        <div id="game-area">
-            <canvas id="gameCanvas" width="400" height="600"></canvas>
+        <button id="startButton">OYUNU BAŞLAT</button>
+        <div class="info">Sağa/Sola Dokunarak Oyna</div>
+        <canvas id="gameCanvas" width="400" height="600"></canvas>
+    </div>
+
+    <div id="explosionModal" class="modal">
+        <div class="modal-content">
+            <h2 id="explosionText"></h2>
+            <img id="explosionImage" src="https://media.giphy.com/media/oe33H3Bmj57CziKyTP/giphy.gif">
+            <br>
+            <button onclick="location.reload()">TEKRAR DENE</button>
         </div>
     </div>
-    <div id="explosionModal" class="modal">
-    <div class="modal-content">
-        <h2 id="explosionText"></h2>
-        <img id="explosionImage" src="https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExNHJueGZ3bmZ6eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4JnB0PWEmcD1n/oe33H3Bmj57CziKyTP/giphy.gif" alt="Patlama">
-        <br>
-        <button onclick="location.reload()">TEKRAR DENE</button>
-    </div>
-</div>
+
     <script src="script.js"></script>
 </body>
 </html>
