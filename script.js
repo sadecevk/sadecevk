@@ -17,7 +17,6 @@ const LIMIT = 120;
 
 function createFruit() {
     if (!gameRunning) return; 
-    
     activeFruit = {
         x: Math.random() * (canvas.width - 60) + 30,
         y: -30,
@@ -28,11 +27,8 @@ function createFruit() {
 
 function update() {
     if (!gameRunning) return;
-
     if (activeFruit) {
         activeFruit.y += speed;
-
-        // Çarpışma kontrolü
         baskets.forEach(basket => {
             if (activeFruit &&
                 activeFruit.x > basket.x && 
@@ -50,33 +46,28 @@ function update() {
                         location.reload();
                     }, 100);
                 } else {
-                    // Bir sonraki meyveyi oluştur
                     setTimeout(createFruit, 400);
                 }
             }
         });
 
-        // Ekranın altına ulaşıp kaçarsa
         if (activeFruit && activeFruit.y > canvas.height) {
             activeFruit = null;
             setTimeout(createFruit, 400);
         }
     } else {
-        // Eğer oyun çalışıyor ama meyve yoksa (ilk başlangıç anı gibi)
         createFruit();
     }
 }
 
 function draw() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
-
     baskets.forEach(basket => {
         ctx.fillStyle = basket.color;
         ctx.fillRect(basket.x, basket.y, basket.width, basket.height);
         ctx.strokeStyle = "white";
         ctx.lineWidth = 3;
         ctx.strokeRect(basket.x, basket.y, basket.width, basket.height);
-
         ctx.fillStyle = "white";
         ctx.font = "bold 16px Arial";
         ctx.textAlign = "center";
@@ -99,7 +90,9 @@ function draw() {
     }
 }
 
-// Kontroller
+// --- KONTROLLER (KLAVYE VE DOKUNMATİK) ---
+
+// Klavye Kontrolü
 document.addEventListener('keydown', (e) => {
     if (activeFruit && gameRunning) {
         if (e.key === "ArrowLeft" && activeFruit.x > 25) activeFruit.x -= 35;
@@ -107,13 +100,14 @@ document.addEventListener('keydown', (e) => {
     }
 });
 
-// BAŞLATMA FONKSİYONU - GARANTİLİ
-startButton.onclick = function() {
-    if (!gameRunning) {
-        gameRunning = true;
-        startButton.style.display = 'none';
-        console.log("Oyun Başlatıldı");
-        createFruit(); // İlk meyveyi oluştur
-        draw(); // Çizim döngüsünü başlat
-    }
-};
+// Dokunmatik Kontrol (Mobil için)
+canvas.addEventListener('touchstart', (e) => {
+    if (!gameRunning || !activeFruit) return;
+    
+    // Dokunulan yerin X koordinatını al
+    let touchX = e.touches[0].clientX - canvas.getBoundingClientRect().left;
+    
+    // Eğer ekranın sol yarısına basıldıysa sola, sağ yarısına basıldıysa sağa kaydır
+    if (touchX < canvas.width / 2) {
+        if (activeFruit.x > 25) activeFruit.x -= 4
+        
