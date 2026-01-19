@@ -1,222 +1,151 @@
-document.addEventListener('DOMContentLoaded', () => {
-    const canvas = document.getElementById('tetrisCanvas');
-    const ctx = canvas.getContext('2d');
-    const startButton = document.getElementById('startButton');
-    const resetButton = document.getElementById('resetButton');
-    const scoreDisplay = document.getElementById('scoreDisplay');
+const canvas = document.getElementById('tetrisCanvas');
+const ctx = canvas.getContext('2d');
+const scoreElement = document.getElementById('scoreDisplay');
 
-    const ROW = 20;
-    const COL = 10;
-    const SQ = 30; // KARE BOYUTU
-    const VACANT = "BLACK"; // Boş kare rengi
+const ROW = 20;
+const COL = 10;
+const SQ = 30;
+const VACANT = "BLACK"; 
 
-    let board = [];
-    let score = 0;
-    let gameOver = false;
-    let dropInterval;
+// Kare çizme fonksiyonu
+function drawSquare(x, y, color) {
+    ctx.fillStyle = color;
+    ctx.fillRect(x * SQ, y * SQ, SQ, SQ);
+    ctx.strokeStyle = "#444";
+    ctx.strokeRect(x * SQ, y * SQ, SQ, SQ);
+}
 
-    // Board'u oluştur
-    function drawBoard() {
-        for (let r = 0; r < ROW; r++) {
-            board[r] = [];
-            for (let c = 0; c < COL; c++) {
-                board[r][c] = VACANT;
-            }
+// Oyun tahtasını oluşturma
+let board = [];
+for(r = 0; r < ROW; r++){
+    board[r] = [];
+    for(c = 0; c < COL; c++){
+        board[r][c] = VACANT;
+    }
+}
+
+function drawBoard(){
+    for(r = 0; r < ROW; r++){
+        for(c = 0; c < COL; c++){
+            drawSquare(c, r, board[r][c]);
         }
     }
+}
 
-    // Kare çiz
-    function drawSquare(x, y, color) {
-        ctx.fillStyle = color;
-        ctx.fillRect(x * SQ, y * SQ, SQ, SQ);
-        ctx.strokeStyle = "Gainsboro";
-        ctx.strokeRect(x * SQ, y * SQ, SQ, SQ);
+drawBoard();
+
+// Tetris Şekli (Sadece Kare Şekli)
+const O = [
+    [
+        [1, 1],
+        [1, 1]
+    ]
+];
+
+class Piece {
+    constructor(tetromino, color) {
+        this.tetromino = tetromino;
+        this.color = color;
+        this.tetrominoN = 0; 
+        this.activeTetromino = this.tetromino[this.tetrominoN];
+        this.x = 4;
+        this.y = -2;
     }
 
-    // Tahtayı çiz
-    function drawBoardSquares() {
-        for (let r = 0; r < ROW; r++) {
-            for (let c = 0; c < COL; c++) {
-                drawSquare(c, r, board[r][c]);
-            }
-        }
-    }
-
-    // Parça nesneleri (basitçe bir kare, diğer şekilleri sonradan ekleriz)
-    const PIECES = [
-        [ [0,0], [1,0], [0,1], [1,1] ] // Kare (O-piece)
-    ];
-    const COLORS = ["red"]; // Şekil renkleri
-
-    class Piece {
-        constructor(tetromino, color) {
-            this.tetromino = tetromino;
-            this.color = color;
-            this.x = COL / 2 - 1; // Başlangıç X
-            this.y = -1; // Başlangıç Y (ekranın biraz üstünden)
-        }
-
-        fill(color) {
-            for (let r = 0; r < this.tetromino.length; r++) {
-                for (let c = 0; c < this.tetromino[r].length; c++) {
-                    if (this.tetromino[r][c]) { // Şeklin dolu olan kısmı
-                        drawSquare(this.x + c, this.y + r, color);
-                    }
+    fill(color) {
+        for(r = 0; r < this.activeTetromino.length; r++){
+            for(c = 0; c < this.activeTetromino.length; c++){
+                if(this.activeTetromino[r][c]){
+                    drawSquare(this.x + c, this.y + r, color);
                 }
             }
         }
+    }
 
-        draw() {
-            this.fill(this.color);
-        }
+    draw() { this.fill(this.color); }
+    unDraw() { this.fill(VACANT); }
 
-        unDraw() {
-            this.fill(VACANT);
-        }
-
-        moveDown() {
-            if (!this.collision(0, 1)) {
-                this.unDraw();
-                this.y++;
-                this.draw();
-            } else {
-                this.lock();
-                p = randomPiece(); // Yeni parça
-            }
-        }
-
-        collision(x, y) {
-            for (let r = 0; r < this.tetromino.length; r++) {
-                for (let c = 0; c < this.tetromino[r].length; c++) {
-                    if (!this.tetromino[r][c]) continue; // Şeklin boş kısmı
-
-                    let newX = this.x + c + x;
-                    let newY = this.y + r + y;
-
-                    if (newX < 0 || newX >= COL || newY >= ROW) return true; // Sınır kontrolü
-                    if (newY < 0) continue; // Ekranın üstündeyse çarpışma olmaz
-                    if (board[newY][newX] !== VACANT) return true; // Başka parçayla çarpışma
-                }
-            }
-            return false;
-        }
-
-        lock() {
-            for (let r = 0; r < this.tetromino.length; r++) {
-                for (let c = 0; c < this.tetromino[r].length; c++) {
-                    if (!this.tetromino[r][c]) continue;
-                    // Oyun bitti mi kontrolü
-                    if (this.y + r < 0) {
-                        gameOver = true;
-                        startButton.disabled = false;
-                        resetButton.disabled = false;
-                        clearInterval(dropInterval);
-                        alert("Oyun Bitti! Puanınız: " + score);
-                        return;
-                    }
-                    board[this.y + r][this.x + c] = this.color;
-                }
-            }
-            // Satır temizleme
-            for (let r = 0; r < ROW; r++) {
-                let isRowFull = true;
-                for (let c = 0; c < COL; c++) {
-                    if (board[r][c] === VACANT) {
-                        isRowFull = false;
-                        break;
-                    }
-                }
-                if (isRowFull) {
-                    for (let y = r; y > 1; y--) {
-                        for (let c = 0; c < COL; c++) {
-                            board[y][c] = board[y - 1][c];
-                        }
-                    }
-                    for (let c = 0; c < COL; c++) {
-                        board[0][c] = VACANT;
-                    }
-                    score += 10; // Puan ekle
-                }
-            }
-            scoreDisplay.textContent = score;
-            drawBoardSquares(); // Yeniden çiz
-        }
-
-        moveLeft() {
-            if (!this.collision(-1, 0)) {
-                this.unDraw();
-                this.x--;
-                this.draw();
-            }
-        }
-
-        moveRight() {
-            if (!this.collision(1, 0)) {
-                this.unDraw();
-                this.x++;
-                this.draw();
-            }
+    moveDown() {
+        if(!this.collision(0,1,this.activeTetromino)){
+            this.unDraw();
+            this.y++;
+            this.draw();
+        } else {
+            this.lock();
+            p = new Piece(O, "red");
         }
     }
 
-    // Rastgele parça oluştur
-    function randomPiece() {
-        let r = Math.floor(Math.random() * PIECES.length);
-        return new Piece(PIECES[r], COLORS[0]);
-    }
-
-    let p = randomPiece(); // İlk parça
-
-    function drop() {
-        if (!gameOver) {
-            p.moveDown();
+    moveRight() {
+        if(!this.collision(1,0,this.activeTetromino)){
+            this.unDraw();
+            this.x++;
+            this.draw();
         }
     }
 
-    function startGame() {
+    moveLeft() {
+        if(!this.collision(-1,0,this.activeTetromino)){
+            this.unDraw();
+            this.x--;
+            this.draw();
+        }
+    }
+
+    collision(x, y, piece) {
+        for(r = 0; r < piece.length; r++){
+            for(c = 0; c < piece.length; c++){
+                if(!piece[r][c]){ continue; }
+                let newX = this.x + c + x;
+                let newY = this.y + r + y;
+                if(newX < 0 || newX >= COL || newY >= ROW){ return true; }
+                if(newY < 0){ continue; }
+                if(board[newY][newX] != VACANT){ return true; }
+            }
+        }
+        return false;
+    }
+
+    lock() {
+        for(r = 0; r < this.activeTetromino.length; r++){
+            for(c = 0; c < this.activeTetromino.length; c++){
+                if(!this.activeTetromino[r][c]){ continue; }
+                if(this.y + r < 0){
+                    alert("Oyun Bitti!");
+                    gameOver = true;
+                    break;
+                }
+                board[this.y + r][this.x + c] = this.color;
+            }
+        }
+        // Satır kontrolü burada yapılabilir
         drawBoard();
-        drawBoardSquares();
-        score = 0;
-        scoreDisplay.textContent = score;
-        gameOver = false;
-        startButton.disabled = true;
-        resetButton.disabled = false;
-        p = randomPiece();
-        p.draw();
-        dropInterval = setInterval(drop, 1000); // Her saniye düşer
     }
+}
 
-    function resetGame() {
-        clearInterval(dropInterval);
-        gameOver = true; // Oyunun durduğundan emin ol
-        startButton.disabled = false;
-        resetButton.disabled = true;
-        score = 0;
-        scoreDisplay.textContent = score;
-        ctx.clearRect(0, 0, canvas.width, canvas.height); // Canvas'ı temizle
-        // Yeniden board oluştur ve çiz (içini boşaltır)
-        drawBoard();
-        drawBoardSquares();
+let p = new Piece(O, "red");
+let gameOver = false;
+
+function drop(){
+    if(!gameOver){
+        p.moveDown();
+        setTimeout(drop, 1000);
     }
+}
 
-    startButton.addEventListener('click', startGame);
-    resetButton.addEventListener('click', resetGame);
+// Butonları bağlayalım
+document.getElementById('startButton').addEventListener('click', () => {
+    gameOver = false;
+    drop();
+});
 
-    // Klavye kontrolleri
-    document.addEventListener('keydown', (e) => {
-        if (gameOver) return;
-        if (e.key === 'ArrowLeft') {
-            p.moveLeft();
-        } else if (e.key === 'ArrowRight') {
-            p.moveRight();
-        } else if (e.key === 'ArrowDown') {
-            p.moveDown();
-        }
-    });
+document.getElementById('resetButton').addEventListener('click', () => {
+    location.reload(); // En temiz sıfırlama yöntemi
+});
 
-    // İlk tahta çizimi (oyun başlamadan önce)
-    drawBoard();
-    drawBoardSquares();
-    resetButton.disabled = true; // Başlangıçta reset tuşu pasif
-
+// Klavye kontrolü
+document.addEventListener("keydown", event => {
+    if(event.keyCode == 37) p.moveLeft();
+    else if(event.keyCode == 39) p.moveRight();
+    else if(event.keyCode == 40) p.moveDown();
 });
