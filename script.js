@@ -2,7 +2,6 @@ const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
 const startButton = document.getElementById('startButton');
 
-// İsimleri buradan değiştirebilirsin
 const names = ["Nurinin Götü", "İlyasın Götü", "Barışın Götü"];
 
 let baskets = [
@@ -11,108 +10,69 @@ let baskets = [
     { x: 280, y: 530, width: 100, height: 40, color: '#3498db', name: names[2] }
 ];
 
-let fruits = [];
+let activeFruit = null; // Sadece tek bir aktif meyve olacak
 let gameRunning = false;
-let speed = 4;
-const LIMIT = 120; // Patlama yüksekliği sınırı
+let speed = 5;
+const LIMIT = 120;
 
 function createFruit() {
-    if (!gameRunning) return;
-    fruits.push({
-        x: Math.random() * (canvas.width - 30) + 15,
+    if (!gameRunning || activeFruit !== null) return; 
+    
+    activeFruit = {
+        x: Math.random() * (canvas.width - 40) + 20,
         y: -20,
         radius: 15,
-        color: '#FFD700' // Muz sarısı
-    });
-    // Her 1.2 saniyede bir yeni meyve düşer
-    setTimeout(createFruit, 1200);
+        color: '#FFD700'
+    };
 }
 
 function update() {
-    if (!gameRunning) return;
+    if (!gameRunning || !activeFruit) return;
 
-    for (let i = fruits.length - 1; i >= 0; i--) {
-        fruits[i].y += speed;
+    activeFruit.y += speed;
 
-        baskets.forEach(basket => {
-            // Basit çarpışma kontrolü
-            if (fruits[i] &&
-                fruits[i].x > basket.x && 
-                fruits[i].x < basket.x + basket.width &&
-                fruits[i].y + fruits[i].radius > basket.y) {
-                
-                // Sepet yukarı doğru büyür
-                basket.height += 15; 
-                basket.y -= 15;      
-                fruits.splice(i, 1);
+    // Çarpışma kontrolü
+    baskets.forEach(basket => {
+        if (activeFruit &&
+            activeFruit.x > basket.x && 
+            activeFruit.x < basket.x + basket.width &&
+            activeFruit.y + activeFruit.radius > basket.y) {
+            
+            basket.height += 20; 
+            basket.y -= 20;      
+            activeFruit = null; // Meyve sepete girdi, yok et
 
-                // Patlama kontrolü
-                if (basket.height >= LIMIT) {
-                    gameRunning = false;
-                    setTimeout(() => {
-                        alert("💥 GÜÜÜM! " + basket.name + " PATLADI! 💥");
-                        location.reload();
-                    }, 100);
-                }
+            if (basket.height >= LIMIT) {
+                gameRunning = false;
+                setTimeout(() => {
+                    alert("💥 GÜÜÜM! " + basket.name + " PATLADI! 💥");
+                    location.reload();
+                }, 100);
+            } else {
+                // Sepete girdi ama patlamadıysa yeni meyve oluştur
+                setTimeout(createFruit, 500);
             }
-        });
-
-        if (fruits[i] && fruits[i].y > canvas.height) {
-            fruits.splice(i, i);
         }
+    });
+
+    // Ekranın altına ulaşıp kaçarsa
+    if (activeFruit && activeFruit.y > canvas.height) {
+        activeFruit = null;
+        setTimeout(createFruit, 500);
     }
 }
 
 function draw() {
-    // Arka planı temizle
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
     baskets.forEach(basket => {
-        // Sepeti (Götü) çiz
         ctx.fillStyle = basket.color;
         ctx.fillRect(basket.x, basket.y, basket.width, basket.height);
-        
-        // Kenarlık
         ctx.strokeStyle = "white";
         ctx.lineWidth = 3;
         ctx.strokeRect(basket.x, basket.y, basket.width, basket.height);
 
-        // İSİMLER BURADA: Sepetin altına sabitlendi
         ctx.fillStyle = "white";
         ctx.font = "bold 16px Arial";
         ctx.textAlign = "center";
         ctx.fillText(basket.name, basket.x + (basket.width / 2), 585);
-    });
-
-    // Meyveleri (Muzları) çiz
-    fruits.forEach(fruit => {
-        ctx.beginPath();
-        ctx.arc(fruit.x, fruit.y, fruit.radius, 0, Math.PI * 2);
-        ctx.fillStyle = fruit.color;
-        ctx.fill();
-        ctx.strokeStyle = "#DAA520";
-        ctx.stroke();
-        ctx.closePath();
-    });
-
-    if (gameRunning) {
-        update();
-        requestAnimationFrame(draw);
-    }
-}
-
-// Kontroller: En son çıkan meyveyi yönetir
-document.addEventListener('keydown', (e) => {
-    if (fruits.length > 0) {
-        let activeFruit = fruits[fruits.length - 1];
-        if (e.key === "ArrowLeft" && activeFruit.x > 20) activeFruit.x -= 25;
-        if (e.key === "ArrowRight" && activeFruit.x < canvas.width - 20) activeFruit.x += 25;
-    }
-});
-
-startButton.addEventListener('click', () => {
-    gameRunning = true;
-    startButton.style.display = 'none';
-    createFruit();
-    draw();
-});
