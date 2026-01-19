@@ -7,10 +7,13 @@ body {
     align-items: center;
     height: 100vh;
     margin: 0;
+    overflow: hidden; /* Sayfanın kaymasını engeller */
+    touch-action: none; /* Mobilde istenmeyen kaymaları durdurur */
 }
 
 .game-container {
     text-align: center;
+    width: 100%;
 }
 
 canvas {
@@ -19,6 +22,8 @@ canvas {
     border-radius: 10px;
     display: block;
     margin: 0 auto;
+    max-width: 90vw; /* Mobil ekranlara sığması için */
+    max-height: 70vh;
 }
 
 #startButton {
@@ -31,6 +36,7 @@ canvas {
     border-radius: 8px;
     margin-top: 15px;
     font-weight: bold;
+    z-index: 100;
 }
 
 #startButton:hover {
@@ -38,6 +44,7 @@ canvas {
 }
 
 .info {
-    margin-top: 10px;
+    margin: 10px 0;
     color: #bdc3c7;
+    font-size: 14px;
 }

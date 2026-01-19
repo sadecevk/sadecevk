@@ -12,16 +12,16 @@ let baskets = [
 
 let activeFruit = null; 
 let gameRunning = false;
-let speed = 5;
-const LIMIT = 120;
+let speed = 6;
+const LIMIT = 130;
 
 function createFruit() {
     if (!gameRunning) return; 
     activeFruit = {
         x: Math.random() * (canvas.width - 60) + 30,
         y: -30,
-        radius: 15,
-        color: '#FFD700'
+        radius: 18,
+        color: '#FFD700' // Muz Sarısı
     };
 }
 
@@ -37,8 +37,8 @@ function update() {
                 activeFruit.x < basket.x + basket.width &&
                 activeFruit.y + activeFruit.radius > basket.y) {
                 
-                basket.height += 20; 
-                basket.y -= 20;      
+                basket.height += 25; 
+                basket.y -= 25;      
                 activeFruit = null; 
 
                 if (basket.height >= LIMIT) {
@@ -48,14 +48,14 @@ function update() {
                         location.reload();
                     }, 100);
                 } else {
-                    setTimeout(createFruit, 400);
+                    setTimeout(createFruit, 300);
                 }
             }
         });
 
         if (activeFruit && activeFruit.y > canvas.height) {
             activeFruit = null;
-            setTimeout(createFruit, 400);
+            setTimeout(createFruit, 300);
         }
     } else {
         createFruit();
@@ -84,6 +84,7 @@ function draw() {
         ctx.fillStyle = activeFruit.color;
         ctx.fill();
         ctx.strokeStyle = "#DAA520";
+        ctx.lineWidth = 2;
         ctx.stroke();
         ctx.closePath();
     }
@@ -94,28 +95,43 @@ function draw() {
     }
 }
 
-// --- KONTROLLER ---
+// --- KONTROL MEKANİZMASI ---
+
+function handleMove(direction) {
+    if (!gameRunning || !activeFruit) return;
+    if (direction === 'left' && activeFruit.x > 30) activeFruit.x -= 45;
+    if (direction === 'right' && activeFruit.x < canvas.width - 30) activeFruit.x += 45;
+}
 
 // Klavye
 document.addEventListener('keydown', (e) => {
-    if (activeFruit && gameRunning) {
-        if (e.key === "ArrowLeft" && activeFruit.x > 25) activeFruit.x -= 35;
-        if (e.key === "ArrowRight" && activeFruit.x < canvas.width - 25) activeFruit.x += 35;
-    }
+    if (e.key === "ArrowLeft") handleMove('left');
+    if (e.key === "ArrowRight") handleMove('right');
 });
 
-// Mobil Dokunma
-canvas.addEventListener('mousedown', (e) => handleInput(e.clientX));
-canvas.addEventListener('touchstart', (e) => {
-    handleInput(e.touches[0].clientX);
-    e.preventDefault();
-}, {passive: false});
-
-function handleInput(clientX) {
-    if (!gameRunning || !activeFruit) return;
+// Mobil & Mouse Dokunma
+const inputHandler = (e) => {
+    if (!gameRunning) return;
     const rect = canvas.getBoundingClientRect();
+    const clientX = e.touches ? e.touches[0].clientX : e.clientX;
     const x = clientX - rect.left;
     
-    if (x < canvas.width / 2) {
-        if (activeFruit.x > 25) activeFruit.x -= 40;
-    } else {
+    if (x < canvas.width / 2) handleMove('left');
+    else handleMove('right');
+    
+    if (e.cancelable) e.preventDefault();
+};
+
+canvas.addEventListener('touchstart', inputHandler, {passive: false});
+canvas.addEventListener('mousedown', inputHandler);
+
+// BAŞLATMA
+startButton.onclick = (e) => {
+    e.preventDefault();
+    if (!gameRunning) {
+        gameRunning = true;
+        startButton.style.display = 'none';
+        createFruit();
+        draw();
+    }
+};
